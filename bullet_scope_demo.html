@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Scope Impact Demo</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+    background: #f0f0f0;
+  }
+  #controls {
+    margin-bottom: 20px;
+  }
+  #target-canvas {
+    background: #fff;
+    border: 1px solid #ccc;
+  }
+</style>
+</head>
+<body>
+<div id="controls">
+  <label for="distance">Distance to target: <span id="distValue">100</span> m</label>
+  <input type="range" id="distance" min="50" max="300" step="5" value="100">
+</div>
+<canvas id="target-canvas" width="400" height="400"></canvas>
+<script>
+const slider = document.getElementById('distance');
+const distValue = document.getElementById('distValue');
+const canvas = document.getElementById('target-canvas');
+const ctx = canvas.getContext('2d');
+
+const g = 9.81; // m/s^2
+const muzzleVelocity = 900; // m/s
+const zeroDistance = 100; // where scope is zeroed
+const scale = 500; // pixels per meter for drop
+
+function drawTarget(distance) {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    // draw crosshair
+    ctx.strokeStyle = '#000';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, canvas.height/2);
+    ctx.lineTo(canvas.width, canvas.height/2);
+    ctx.moveTo(canvas.width/2, 0);
+    ctx.lineTo(canvas.width/2, canvas.height);
+    ctx.stroke();
+
+    // compute bullet drop difference
+    const dropZero = 0.5 * g * Math.pow(zeroDistance/muzzleVelocity, 2);
+    const dropDist = 0.5 * g * Math.pow(distance/muzzleVelocity, 2);
+    const diff = dropDist - dropZero; // positive -> impact low
+
+    const y = canvas.height/2 + diff * scale; // downward positive
+    ctx.fillStyle = 'red';
+    ctx.beginPath();
+    ctx.arc(canvas.width/2, y, 6, 0, 2*Math.PI);
+    ctx.fill();
+}
+
+function update() {
+    const val = parseInt(slider.value, 10);
+    distValue.textContent = val;
+    drawTarget(val);
+}
+
+slider.addEventListener('input', update);
+
+// initial draw
+update();
+</script>
+</body>
+</html>
